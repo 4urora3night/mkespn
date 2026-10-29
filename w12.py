@@ -534,6 +534,48 @@ def cmd_set(args):
     print(f"saved {btn} → {key}, {mode_label(mode, count)}")
     print("(run 'w12.py apply' to push to the device)")
 
+def cmd_setmouse(argv):
+    if len(argv) < 3:
+        print("Usage: w12.py setmouse <btn_name> <mouse_mask> <mode>")
+        sys.exit(1)
+    btn_name = argv[0].upper()
+    mask_str = argv[1].lower()
+    mode_str = argv[2]
+  
+    if mask_str == "left": mask = 0x01
+    elif mask_str == "right": mask = 0x02
+    elif mask_str == "middle": mask = 0x04
+    elif mask_str == "back": mask = 0x08
+    elif mask_str == "forward": mask = 0x10
+    else: mask = int(mask_str, 0)
+
+    mode, count = parse_mode(mode_str)
+    state = load_state()
+    
+    if btn_name not in state.buttons:
+        raise ValueError(f"unknown button: {btn_name}")
+
+    # PROTOCOL WORKAROUND FOR SINGLE MOUSE EVENTS:
+    # Force mode 0x00 (Loop Count) with count=1 to emulate an absolute single click step
+    if mode_str == "single":
+        mode = MODE_LOOP_COUNT  # Force 0x00
+        count = 1               # Force loop execution ceiling to 1
+        
+
+        macro = Macro(events=[
+            ["press_btn", mask, 40],   
+            ["release_btn", mask, 40]  
+        ])
+    else:
+        macro = Macro(events=[
+            ["press_btn", mask, 40],
+            ["release_btn", mask, 40]
+        ])
+      #The 40 seems to be a hard limit for the macro.I could not go any lower without it seizing to function
+  
+    state.buttons[btn_name] = ButtonConfig(macro=macro, mode=mode, count=count)
+    save_state(state)
+    print(f"Set physical button {btn_name} to Mouse Mask {mask_str} ({mode_label(mode, count)})")
 
 def cmd_apply(_args):
     state = load_state()
