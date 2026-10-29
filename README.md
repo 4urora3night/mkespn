@@ -1,4 +1,4 @@
-# mkespn — Linux programmer for MKESPN W12 / YJX-CHIP USB mice
+# mkespn — Linux programmer for MKESPN W12 / AULA SC620 YJX-CHIP USB mice
 
 CLI tool that programs the macro buttons of MKESPN-brand mice that use the
 **YJX-CHIP** USB controller (USB VID `a8a4`, PID `2255` — the W12 model and
@@ -13,6 +13,10 @@ without booting Windows or running the app under Wine every time.
 The protocol was reverse-engineered from USB captures of the manufacturer's
 Windows app running under wine-staging 11.7. See
 [`PROTOCOL.md`](PROTOCOL.md) for the full decode.
+
+## Changes made
+
+Remapping the side buttons to left click(ptt), forward(single) and back(single) via `setmouse` command made with the help of Gemini. The functionality may extend further(right and middle click) but that remains untested.
 
 ## What it can do
 
@@ -84,9 +88,19 @@ python3 w12.py set C 2 loop:5
 # Set side button D to "any", repeating forever until another button is pressed
 python3 w12.py set D q until-click
 
+# Set side button A to left click, push-to-talk style which mimics the fire key
+sudo python3 w12.py setmouse A left ptt
+
+# Set side button B to 'forward key', firing exactly once per click
+sudo python3 w12.py setmouse B forward single
+
+# Set side button C to 'forward key', firing exactly once per click
+sudo python3 w12.py setmouse C back single
+
 # Push the current state to the device
 python3 w12.py apply
 ```
+(run with `sudo` for `set` commands if needed)
 
 ### Mode reference
 
@@ -122,6 +136,19 @@ Right bot   → side button D
 
 (Right side is reverse alphabetical because of the wine UI's mouse-diagram
 labelling — left side goes A→B→C, right side goes F→E→D from front to back.)
+
+## Physical button layout (Aula AC620)
+
+The Aula SC620 has 3 buttons on the left side. Pressing them in physical order from the
+left-side top-to-bottom produces:
+
+```
+Left top(Fire key)       → side button A
+Left mid(Forward key)    → side button B
+Left bot(Back key)       → side button C
+```
+
+(So far I am unsure to what the F,E and D keys map to)
 
 ## Files
 
